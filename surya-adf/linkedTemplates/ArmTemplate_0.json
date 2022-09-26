@@ -1,0 +1,667 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "surya-adf"
+		},
+		"lsBlob_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'lsBlob'"
+		},
+		"lsSql_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'lsSql'"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/lsBlob')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('lsBlob_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/lsSql')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": "[parameters('lsSql_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dsBlob')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "lsBlob",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "Student.csv",
+						"folderPath": "output",
+						"container": "sample-data"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/lsBlob')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dsDept')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "lsSql",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "deptno",
+						"type": "decimal",
+						"precision": 2,
+						"scale": 0
+					},
+					{
+						"name": "dname",
+						"type": "varchar"
+					},
+					{
+						"name": "loc",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "dept"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/lsSql')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dsEmp')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "lsSql",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "empno",
+						"type": "decimal",
+						"precision": 4,
+						"scale": 0
+					},
+					{
+						"name": "ename",
+						"type": "varchar"
+					},
+					{
+						"name": "job",
+						"type": "varchar"
+					},
+					{
+						"name": "mgr",
+						"type": "decimal",
+						"precision": 4,
+						"scale": 0
+					},
+					{
+						"name": "hiredate",
+						"type": "date"
+					},
+					{
+						"name": "sal",
+						"type": "decimal",
+						"precision": 7,
+						"scale": 2
+					},
+					{
+						"name": "comm",
+						"type": "decimal",
+						"precision": 7,
+						"scale": 2
+					},
+					{
+						"name": "deptno",
+						"type": "decimal",
+						"precision": 2,
+						"scale": 0
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "emp"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/lsSql')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dsFemaleStudent')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "lsBlob",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "F.csv",
+						"container": "sample-data"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "studentId",
+						"type": "String"
+					},
+					{
+						"name": "name",
+						"type": "String"
+					},
+					{
+						"name": "age",
+						"type": "String"
+					},
+					{
+						"name": "gender",
+						"type": "String"
+					},
+					{
+						"name": "course",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/lsBlob')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dsMaleStudent')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "lsBlob",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "M.csv",
+						"container": "sample-data"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "studentId",
+						"type": "String"
+					},
+					{
+						"name": "name",
+						"type": "String"
+					},
+					{
+						"name": "age",
+						"type": "String"
+					},
+					{
+						"name": "gender",
+						"type": "String"
+					},
+					{
+						"name": "course",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/lsBlob')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dsMovieTable')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "lsSql",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "movie",
+						"type": "decimal",
+						"precision": 18,
+						"scale": 0
+					},
+					{
+						"name": "title",
+						"type": "varchar"
+					},
+					{
+						"name": "genres",
+						"type": "varchar"
+					},
+					{
+						"name": "year",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "rating",
+						"type": "decimal",
+						"precision": 18,
+						"scale": 0
+					},
+					{
+						"name": "rotton_tomato",
+						"type": "decimal",
+						"precision": 18,
+						"scale": 0
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "movies"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/lsSql')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dsMovies')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "lsBlob",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "Movies.csv",
+						"container": "sample-data"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "movie",
+						"type": "String"
+					},
+					{
+						"name": "title",
+						"type": "String"
+					},
+					{
+						"name": "genres",
+						"type": "String"
+					},
+					{
+						"name": "year",
+						"type": "String"
+					},
+					{
+						"name": "Rating",
+						"type": "String"
+					},
+					{
+						"name": "Rotton Tomato",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/lsBlob')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/GroupBy')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "WranglingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"name": "dsEmp",
+							"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> dsEmp",
+							"dataset": {
+								"referenceName": "dsEmp",
+								"type": "DatasetReference"
+							}
+						}
+					],
+					"script": "section Section1;\r\nshared dsEmp = let AdfDoc = Sql.Database(\"surya-server.database.windows.net\", \"testdb\", [CreateNavigationProperties = false]), InputTable = AdfDoc{[Schema=\"dbo\",Item=\"emp\"]}[Data] in InputTable;\r\nshared UserQuery = let Source = #\"dsEmp\",\r\n  #\"Replaced value\" = Table.ReplaceValue(Source, null, 0, Replacer.ReplaceValue, {\"comm\"}),\r\n  #\"Changed column type\" = Table.TransformColumnTypes(#\"Replaced value\", {{\"empno\", Int64.Type}, {\"mgr\", Int64.Type}, {\"deptno\", Int64.Type}}),\r\n  #\"Grouped rows\" = Table.Group(#\"Changed column type\", {\"deptno\"}, {{\"Avg_Salary\", each List.Average([sal]), type nullable number}, {\"Employee_Count\", each Table.RowCount(_), Int64.Type}, {\"Sum_Salary\", each List.Sum([sal]), type nullable number}, {\"Max_Salary\", each List.Max([sal]), type nullable number}, {\"Min_Sal\", each List.Min([sal]), type nullable number}, {\"Median_Salary\", each List.Median([sal]), type nullable number}}),\r\n  #\"Sorted rows\" = Table.Sort(#\"Grouped rows\", {{\"deptno\", Order.Ascending}}),\r\n  #\"Removed columns\" = Table.RemoveColumns(#\"Sorted rows\", {\"Median_Salary\"}) in #\"Removed columns\";\r\n",
+					"documentLocale": "en-us"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/dsEmp')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/MergeQueries')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "WranglingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"name": "dsEmp",
+							"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> dsEmp",
+							"dataset": {
+								"referenceName": "dsEmp",
+								"type": "DatasetReference"
+							}
+						},
+						{
+							"name": "dsDept",
+							"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> dsDept",
+							"dataset": {
+								"referenceName": "dsDept",
+								"type": "DatasetReference"
+							}
+						}
+					],
+					"script": "section Section1;\r\nshared dsEmp = let AdfDoc = Sql.Database(\"surya-server.database.windows.net\", \"testdb\", [CreateNavigationProperties = false]), InputTable = AdfDoc{[Schema=\"dbo\",Item=\"emp\"]}[Data] in InputTable;\r\nshared dsDept = let AdfDoc = Sql.Database(\"surya-server.database.windows.net\", \"testdb\", [CreateNavigationProperties = false]), InputTable = AdfDoc{[Schema=\"dbo\",Item=\"dept\"]}[Data] in InputTable;\r\nshared UserQuery = let Source = #\"dsEmp\",\r\n  #\"Replaced value\" = Table.ReplaceValue(Source, null, 0, Replacer.ReplaceValue, {\"comm\"}),\r\n  #\"Changed column type\" = Table.TransformColumnTypes(#\"Replaced value\", {{\"deptno\", Int64.Type}}),\r\n  #\"Changed column type 1\" = Table.TransformColumnTypes(#\"Changed column type\", {{\"empno\", Int64.Type}, {\"mgr\", Int64.Type}}),\r\n  #\"Replaced value 1\" = Table.ReplaceValue(#\"Changed column type 1\", null, 0, Replacer.ReplaceValue, {\"empno\", \"mgr\"}),\r\n  #\"Merged queries\" = Table.NestedJoin(#\"Replaced value 1\", {\"deptno\"}, dsDept, {\"deptno\"}, \"dsDept\", JoinKind.Inner),\r\n  #\"Expanded dsDept\" = Table.ExpandTableColumn(#\"Merged queries\", \"dsDept\", {\"deptno\", \"dname\", \"loc\"}, {\"deptno.1\", \"dname\", \"loc\"}),\r\n  #\"Removed columns\" = Table.RemoveColumns(#\"Expanded dsDept\", {\"deptno.1\"}) in #\"Removed columns\";\r\n",
+					"documentLocale": "en-us"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/dsEmp')]",
+				"[concat(variables('factoryId'), '/datasets/dsDept')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Wrangling Data Flow')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "WranglingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"name": "dsMovies",
+							"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> dsMovies",
+							"dataset": {
+								"referenceName": "dsMovies",
+								"type": "DatasetReference"
+							}
+						},
+						{
+							"name": "dsSqlTable",
+							"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> dsSqlTable",
+							"dataset": {
+								"referenceName": "dsMovieTable",
+								"type": "DatasetReference"
+							}
+						}
+					],
+					"script": "section Section1;\r\nshared dsMovies = let AdfDoc = AzureStorage.BlobContents(\"https://suryastorage1208.blob.core.windows.net/sample-data/Movies.csv\"),Csv = Csv.Document(AdfDoc, [Delimiter = \",\", Encoding = TextEncoding.Utf8, QuoteStyle = QuoteStyle.Csv]), PromotedHeaders = Table.PromoteHeaders(Csv, [PromoteAllScalars = true]) in  PromotedHeaders;\r\nshared dsMovieTable = let AdfDoc = Sql.Database(\"surya-server.database.windows.net\", \"testdb\", [CreateNavigationProperties = false]), InputTable = AdfDoc{[Schema=\"dbo\",Item=\"movies\"]}[Data] in InputTable;\r\nshared dsSqlTable = let AdfDoc = Sql.Database(\"surya-server.database.windows.net\", \"testdb\", [CreateNavigationProperties = false]), InputTable = AdfDoc{[Schema=\"dbo\",Item=\"movies\"]}[Data] in InputTable;\r\nshared UserQuery = let Source = #\"dsMovies\",\r\n  #\"Changed column type\" = Table.TransformColumnTypes(Source, {{\"movie\", Int64.Type}}),\r\n  #\"Sorted rows\" = Table.Sort(#\"Changed column type\", {{\"movie\", Order.Ascending}}),\r\n  #\"Changed column type 1\" = Table.TransformColumnTypes(#\"Sorted rows\", {{\"year\", Int64.Type}}),\r\n  #\"Replaced value\" = Table.ReplaceValue(#\"Changed column type 1\", -1980, 1980, Replacer.ReplaceValue, {\"year\"}),\r\n  #\"Changed column type 2\" = Table.TransformColumnTypes(#\"Replaced value\", {{\"Rating\", Int64.Type}, {\"Rotton Tomato\", Int64.Type}, {\"year\", Int64.Type}}) in #\"Changed column type 2\";\r\n",
+					"documentLocale": "en-us"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/dsMovies')]",
+				"[concat(variables('factoryId'), '/datasets/dsMovieTable')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/plGroupBy')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Power Query1",
+						"type": "ExecuteWranglingDataflow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "GroupBy",
+								"type": "DataFlowReference",
+								"datasetParameters": {
+									"dsEmp": {},
+									"UserQuerydsBlob": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"queries": [
+								{
+									"queryName": "UserQuery",
+									"dataflowSinks": [
+										{
+											"name": "UserQuerydsBlob",
+											"dataset": {
+												"referenceName": "dsBlob",
+												"type": "DatasetReference",
+												"parameters": {}
+											},
+											"script": "sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> UserQuerydsBlob"
+										}
+									]
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2022-09-26T10:09:10Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/GroupBy')]",
+				"[concat(variables('factoryId'), '/datasets/dsBlob')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/plMerge')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Power Query1",
+						"type": "ExecuteWranglingDataflow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "MergeQueries",
+								"type": "DataFlowReference",
+								"datasetParameters": {
+									"dsEmp": {},
+									"dsDept": {},
+									"UserQuerydsBlob": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"queries": [
+								{
+									"queryName": "UserQuery",
+									"dataflowSinks": [
+										{
+											"name": "UserQuerydsBlob",
+											"dataset": {
+												"referenceName": "dsBlob",
+												"type": "DatasetReference",
+												"parameters": {}
+											},
+											"script": "sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> UserQuerydsBlob"
+										}
+									]
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2022-09-26T09:33:19Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/MergeQueries')]",
+				"[concat(variables('factoryId'), '/datasets/dsBlob')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/plWranglingDataFlow')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Power Query1",
+						"type": "ExecuteWranglingDataflow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "Wrangling Data Flow",
+								"type": "DataFlowReference",
+								"datasetParameters": {
+									"dsMovies": {},
+									"dsSqlTable": {},
+									"UserQuerydsSqlTable": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"queries": [
+								{
+									"queryName": "UserQuery",
+									"dataflowSinks": [
+										{
+											"name": "UserQuerydsSqlTable",
+											"dataset": {
+												"referenceName": "dsMovieTable",
+												"type": "DatasetReference",
+												"parameters": {}
+											},
+											"script": "sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tmovie as decimal(18,0),\n\t\ttitle as string,\n\t\tgenres as string,\n\t\tyear as integer,\n\t\trating as decimal(18,0),\n\t\trotton_tomato as decimal(18,0)\n\t),\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> UserQuerydsSqlTable"
+										}
+									]
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2022-09-26T08:08:02Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/Wrangling Data Flow')]",
+				"[concat(variables('factoryId'), '/datasets/dsMovieTable')]"
+			]
+		}
+	]
+}
