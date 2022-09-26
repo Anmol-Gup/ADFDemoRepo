@@ -1,0 +1,28 @@
+{
+	"name": "Wrangling Data Flow",
+	"properties": {
+		"type": "WranglingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"name": "dsMovies",
+					"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> dsMovies",
+					"dataset": {
+						"referenceName": "dsMovies",
+						"type": "DatasetReference"
+					}
+				},
+				{
+					"name": "dsSqlTable",
+					"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> dsSqlTable",
+					"dataset": {
+						"referenceName": "dsMovieTable",
+						"type": "DatasetReference"
+					}
+				}
+			],
+			"script": "section Section1;\r\nshared dsMovies = let AdfDoc = AzureStorage.BlobContents(\"https://suryastorage1208.blob.core.windows.net/sample-data/Movies.csv\"),Csv = Csv.Document(AdfDoc, [Delimiter = \",\", Encoding = TextEncoding.Utf8, QuoteStyle = QuoteStyle.Csv]), PromotedHeaders = Table.PromoteHeaders(Csv, [PromoteAllScalars = true]) in  PromotedHeaders;\r\nshared dsMovieTable = let AdfDoc = Sql.Database(\"surya-server.database.windows.net\", \"testdb\", [CreateNavigationProperties = false]), InputTable = AdfDoc{[Schema=\"dbo\",Item=\"movies\"]}[Data] in InputTable;\r\nshared dsSqlTable = let AdfDoc = Sql.Database(\"surya-server.database.windows.net\", \"testdb\", [CreateNavigationProperties = false]), InputTable = AdfDoc{[Schema=\"dbo\",Item=\"movies\"]}[Data] in InputTable;\r\nshared UserQuery = let Source = #\"dsMovies\",\r\n  #\"Changed column type\" = Table.TransformColumnTypes(Source, {{\"movie\", Int64.Type}}),\r\n  #\"Sorted rows\" = Table.Sort(#\"Changed column type\", {{\"movie\", Order.Ascending}}),\r\n  #\"Changed column type 1\" = Table.TransformColumnTypes(#\"Sorted rows\", {{\"year\", Int64.Type}}),\r\n  #\"Replaced value\" = Table.ReplaceValue(#\"Changed column type 1\", -1980, 1980, Replacer.ReplaceValue, {\"year\"}),\r\n  #\"Changed column type 2\" = Table.TransformColumnTypes(#\"Replaced value\", {{\"Rating\", Int64.Type}, {\"Rotton Tomato\", Int64.Type}, {\"year\", Int64.Type}}) in #\"Changed column type 2\";\r\n",
+			"documentLocale": "en-us"
+		}
+	}
+}

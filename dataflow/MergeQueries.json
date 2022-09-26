@@ -1,0 +1,28 @@
+{
+	"name": "MergeQueries",
+	"properties": {
+		"type": "WranglingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"name": "dsEmp",
+					"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> dsEmp",
+					"dataset": {
+						"referenceName": "dsEmp",
+						"type": "DatasetReference"
+					}
+				},
+				{
+					"name": "dsDept",
+					"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> dsDept",
+					"dataset": {
+						"referenceName": "dsDept",
+						"type": "DatasetReference"
+					}
+				}
+			],
+			"script": "section Section1;\r\nshared dsEmp = let AdfDoc = Sql.Database(\"surya-server.database.windows.net\", \"testdb\", [CreateNavigationProperties = false]), InputTable = AdfDoc{[Schema=\"dbo\",Item=\"emp\"]}[Data] in InputTable;\r\nshared dsDept = let AdfDoc = Sql.Database(\"surya-server.database.windows.net\", \"testdb\", [CreateNavigationProperties = false]), InputTable = AdfDoc{[Schema=\"dbo\",Item=\"dept\"]}[Data] in InputTable;\r\nshared UserQuery = let Source = #\"dsEmp\",\r\n  #\"Replaced value\" = Table.ReplaceValue(Source, null, 0, Replacer.ReplaceValue, {\"comm\"}),\r\n  #\"Changed column type\" = Table.TransformColumnTypes(#\"Replaced value\", {{\"deptno\", Int64.Type}}),\r\n  #\"Changed column type 1\" = Table.TransformColumnTypes(#\"Changed column type\", {{\"empno\", Int64.Type}, {\"mgr\", Int64.Type}}),\r\n  #\"Replaced value 1\" = Table.ReplaceValue(#\"Changed column type 1\", null, 0, Replacer.ReplaceValue, {\"empno\", \"mgr\"}),\r\n  #\"Merged queries\" = Table.NestedJoin(#\"Replaced value 1\", {\"deptno\"}, dsDept, {\"deptno\"}, \"dsDept\", JoinKind.Inner),\r\n  #\"Expanded dsDept\" = Table.ExpandTableColumn(#\"Merged queries\", \"dsDept\", {\"deptno\", \"dname\", \"loc\"}, {\"deptno.1\", \"dname\", \"loc\"}),\r\n  #\"Removed columns\" = Table.RemoveColumns(#\"Expanded dsDept\", {\"deptno.1\"}) in #\"Removed columns\";\r\n",
+			"documentLocale": "en-us"
+		}
+	}
+}

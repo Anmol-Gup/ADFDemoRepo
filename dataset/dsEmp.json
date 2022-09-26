@@ -1,0 +1,60 @@
+{
+	"name": "dsEmp",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "lsSql",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "empno",
+				"type": "decimal",
+				"precision": 4,
+				"scale": 0
+			},
+			{
+				"name": "ename",
+				"type": "varchar"
+			},
+			{
+				"name": "job",
+				"type": "varchar"
+			},
+			{
+				"name": "mgr",
+				"type": "decimal",
+				"precision": 4,
+				"scale": 0
+			},
+			{
+				"name": "hiredate",
+				"type": "date"
+			},
+			{
+				"name": "sal",
+				"type": "decimal",
+				"precision": 7,
+				"scale": 2
+			},
+			{
+				"name": "comm",
+				"type": "decimal",
+				"precision": 7,
+				"scale": 2
+			},
+			{
+				"name": "deptno",
+				"type": "decimal",
+				"precision": 2,
+				"scale": 0
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "emp"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

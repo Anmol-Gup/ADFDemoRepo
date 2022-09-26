@@ -1,0 +1,20 @@
+{
+	"name": "GroupBy",
+	"properties": {
+		"type": "WranglingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"name": "dsEmp",
+					"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> dsEmp",
+					"dataset": {
+						"referenceName": "dsEmp",
+						"type": "DatasetReference"
+					}
+				}
+			],
+			"script": "section Section1;\r\nshared dsEmp = let AdfDoc = Sql.Database(\"surya-server.database.windows.net\", \"testdb\", [CreateNavigationProperties = false]), InputTable = AdfDoc{[Schema=\"dbo\",Item=\"emp\"]}[Data] in InputTable;\r\nshared UserQuery = let Source = #\"dsEmp\",\r\n  #\"Replaced value\" = Table.ReplaceValue(Source, null, 0, Replacer.ReplaceValue, {\"comm\"}),\r\n  #\"Changed column type\" = Table.TransformColumnTypes(#\"Replaced value\", {{\"empno\", Int64.Type}, {\"mgr\", Int64.Type}, {\"deptno\", Int64.Type}}),\r\n  #\"Grouped rows\" = Table.Group(#\"Changed column type\", {\"deptno\"}, {{\"Avg_Salary\", each List.Average([sal]), type nullable number}, {\"Employee_Count\", each Table.RowCount(_), Int64.Type}, {\"Sum_Salary\", each List.Sum([sal]), type nullable number}, {\"Max_Salary\", each List.Max([sal]), type nullable number}, {\"Min_Sal\", each List.Min([sal]), type nullable number}, {\"Median_Salary\", each List.Median([sal]), type nullable number}}),\r\n  #\"Sorted rows\" = Table.Sort(#\"Grouped rows\", {{\"deptno\", Order.Ascending}}),\r\n  #\"Removed columns\" = Table.RemoveColumns(#\"Sorted rows\", {\"Median_Salary\"}) in #\"Removed columns\";\r\n",
+			"documentLocale": "en-us"
+		}
+	}
+}
